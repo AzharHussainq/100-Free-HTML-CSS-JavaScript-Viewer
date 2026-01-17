@@ -1,0 +1,1163 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CodePlayground: 100% Free HTML, CSS, JavaScript Viewer - No Sign Up Required</title>
+    <meta name="description" content="Free online HTML, CSS, and JavaScript viewer with live preview. 100% free, no sign-up, no limitations. Test and visualize your code instantly with our modern code playground.">
+    <meta name="keywords" content="HTML viewer online free, CSS tester, JavaScript playground, code editor free, web development tools, live code preview, no sign up required, 100% free code editor, responsive design tester, frontend code viewer">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&family=Roboto+Mono:wght@400;500&display=swap" rel="stylesheet">
+    <style>
+        /* CSS Reset and Base Styles */
+        :root {
+            --primary: #6366f1;
+            --primary-dark: #4f46e5;
+            --secondary: #10b981;
+            --dark: #1f2937;
+            --light: #f9fafb;
+            --gray: #9ca3af;
+            --gray-light: #e5e7eb;
+            --shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+            --shadow-lg: 0 20px 25px -5px rgba(0, 0, 0, 0.1);
+            --transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            --border-radius: 12px;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        html {
+            scroll-behavior: smooth;
+        }
+
+        body {
+            font-family: 'Poppins', sans-serif;
+            background-color: #f8fafc;
+            color: var(--dark);
+            line-height: 1.6;
+            overflow-x: hidden;
+        }
+
+        .container {
+            width: 100%;
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 0 20px;
+        }
+
+        /* Loading Screen */
+        .loading-screen {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%);
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            z-index: 9999;
+            transition: opacity 0.5s ease, visibility 0.5s ease;
+        }
+
+        .loading-screen.hidden {
+            opacity: 0;
+            visibility: hidden;
+        }
+
+        .loader {
+            width: 80px;
+            height: 80px;
+            border-radius: 50%;
+            border: 8px solid rgba(255, 255, 255, 0.2);
+            border-top-color: white;
+            animation: spin 1s cubic-bezier(0.5, 0.1, 0.5, 0.9) infinite;
+            margin-bottom: 20px;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        /* Side Navigation */
+        .side-nav {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 280px;
+            height: 100vh;
+            background: white;
+            box-shadow: var(--shadow);
+            padding: 30px 0;
+            z-index: 100;
+            transform: translateX(-100%);
+            transition: var(--transition);
+            display: flex;
+            flex-direction: column;
+        }
+
+        .side-nav.active {
+            transform: translateX(0);
+        }
+
+        .nav-header {
+            padding: 0 25px 30px;
+            border-bottom: 1px solid var(--gray-light);
+        }
+
+        .nav-header h2 {
+            color: var(--primary);
+            font-size: 1.8rem;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .nav-header h2 span {
+            color: var(--secondary);
+        }
+
+        .nav-links {
+            flex: 1;
+            padding: 30px 0;
+            overflow-y: auto;
+        }
+
+        .nav-link {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            padding: 18px 25px;
+            color: var(--dark);
+            text-decoration: none;
+            font-weight: 500;
+            transition: var(--transition);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .nav-link i {
+            width: 24px;
+            text-align: center;
+            font-size: 1.2rem;
+            color: var(--primary);
+            transition: var(--transition);
+        }
+
+        .nav-link:hover {
+            background-color: rgba(99, 102, 241, 0.05);
+            color: var(--primary);
+            padding-left: 30px;
+        }
+
+        .nav-link:hover i {
+            transform: scale(1.2);
+        }
+
+        .nav-link.active {
+            background-color: rgba(99, 102, 241, 0.1);
+            color: var(--primary);
+            border-right: 4px solid var(--primary);
+        }
+
+        .nav-footer {
+            padding: 20px 25px 0;
+            border-top: 1px solid var(--gray-light);
+            font-size: 0.9rem;
+            color: var(--gray);
+        }
+
+        /* Mobile Menu Toggle */
+        .menu-toggle {
+            position: fixed;
+            top: 25px;
+            left: 25px;
+            width: 50px;
+            height: 50px;
+            background: white;
+            border-radius: 50%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            box-shadow: var(--shadow);
+            z-index: 101;
+            cursor: pointer;
+            transition: var(--transition);
+        }
+
+        .menu-toggle:hover {
+            background: var(--primary);
+            color: white;
+            transform: scale(1.05);
+        }
+
+        /* Main Content */
+        .main-content {
+            padding: 30px;
+            padding-left: 30px;
+            transition: var(--transition);
+            min-height: 100vh;
+        }
+
+        .side-nav.active + .main-content {
+            padding-left: 310px;
+        }
+
+        /* Header */
+        .header {
+            margin-bottom: 40px;
+            animation: fadeInUp 0.8s ease;
+        }
+
+        .header h1 {
+            font-size: 2.8rem;
+            color: var(--dark);
+            margin-bottom: 15px;
+            line-height: 1.2;
+        }
+
+        .header h1 span {
+            color: var(--primary);
+        }
+
+        .subtitle {
+            font-size: 1.2rem;
+            color: var(--gray);
+            margin-bottom: 25px;
+            max-width: 800px;
+        }
+
+        .features {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 15px;
+            margin-top: 25px;
+        }
+
+        .feature-badge {
+            background: white;
+            padding: 10px 20px;
+            border-radius: 50px;
+            box-shadow: var(--shadow);
+            font-weight: 500;
+            font-size: 0.9rem;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            transition: var(--transition);
+            cursor: default;
+        }
+
+        .feature-badge:hover {
+            transform: translateY(-5px);
+            box-shadow: var(--shadow-lg);
+        }
+
+        .feature-badge i {
+            color: var(--secondary);
+        }
+
+        /* Code Editor Section */
+        .editor-section {
+            animation: fadeInUp 0.8s ease 0.2s both;
+        }
+
+        .section-title {
+            font-size: 1.8rem;
+            margin-bottom: 25px;
+            color: var(--dark);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .section-title i {
+            color: var(--primary);
+        }
+
+        .editor-container {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 30px;
+            margin-bottom: 40px;
+        }
+
+        .editor-box {
+            background: white;
+            border-radius: var(--border-radius);
+            box-shadow: var(--shadow);
+            overflow: hidden;
+            transition: var(--transition);
+        }
+
+        .editor-box:hover {
+            transform: translateY(-10px);
+            box-shadow: var(--shadow-lg);
+        }
+
+        .editor-header {
+            padding: 20px;
+            background: var(--primary);
+            color: white;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .editor-header h3 {
+            font-size: 1.3rem;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .editor-body {
+            padding: 0;
+            position: relative;
+        }
+
+        textarea.code-input {
+            width: 100%;
+            height: 300px;
+            padding: 20px;
+            border: none;
+            font-family: 'Roboto Mono', monospace;
+            font-size: 14px;
+            line-height: 1.5;
+            resize: vertical;
+            background: #f8fafc;
+            color: var(--dark);
+        }
+
+        textarea.code-input:focus {
+            outline: none;
+            background: white;
+        }
+
+        /* Preview Section */
+        .preview-section {
+            animation: fadeInUp 0.8s ease 0.4s both;
+            margin-bottom: 60px;
+        }
+
+        .preview-container {
+            background: white;
+            border-radius: var(--border-radius);
+            box-shadow: var(--shadow);
+            overflow: hidden;
+            transition: var(--transition);
+        }
+
+        .preview-container:hover {
+            transform: translateY(-5px);
+            box-shadow: var(--shadow-lg);
+        }
+
+        .preview-header {
+            padding: 20px;
+            background: var(--secondary);
+            color: white;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .preview-header h3 {
+            font-size: 1.3rem;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .preview-actions {
+            display: flex;
+            gap: 10px;
+        }
+
+        .btn {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 8px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: var(--transition);
+            font-family: 'Poppins', sans-serif;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .btn-primary {
+            background: var(--primary);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background: var(--primary-dark);
+            transform: translateY(-3px);
+        }
+
+        .btn-secondary {
+            background: white;
+            color: var(--primary);
+        }
+
+        .btn-secondary:hover {
+            background: var(--gray-light);
+            transform: translateY(-3px);
+        }
+
+        .preview-frame {
+            width: 100%;
+            height: 500px;
+            border: none;
+            background: white;
+        }
+
+        /* Footer */
+        .footer {
+            text-align: center;
+            padding: 40px 0;
+            color: var(--gray);
+            border-top: 1px solid var(--gray-light);
+            animation: fadeInUp 0.8s ease 0.6s both;
+        }
+
+        .footer h3 {
+            color: var(--dark);
+            margin-bottom: 20px;
+            font-size: 1.5rem;
+        }
+
+        .keywords {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 15px;
+            margin: 30px 0;
+            max-width: 800px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+
+        .keyword {
+            background: white;
+            padding: 8px 16px;
+            border-radius: 50px;
+            font-size: 0.9rem;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+            transition: var(--transition);
+        }
+
+        .keyword:hover {
+            background: var(--primary);
+            color: white;
+            transform: translateY(-3px);
+        }
+
+        .copyright {
+            margin-top: 30px;
+            font-size: 0.9rem;
+        }
+
+        /* Ripple Click Effect */
+        .ripple {
+            position: absolute;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.7);
+            transform: scale(0);
+            animation: ripple 0.6s linear;
+            pointer-events: none;
+        }
+
+        @keyframes ripple {
+            to {
+                transform: scale(4);
+                opacity: 0;
+            }
+        }
+
+        /* Animations */
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        @keyframes slideInLeft {
+            from {
+                opacity: 0;
+                transform: translateX(-30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateX(0);
+            }
+        }
+
+        /* Responsive Design */
+        @media (max-width: 1200px) {
+            .side-nav.active + .main-content {
+                padding-left: 30px;
+            }
+            
+            .side-nav {
+                width: 250px;
+            }
+        }
+
+        @media (max-width: 992px) {
+            .header h1 {
+                font-size: 2.3rem;
+            }
+            
+            .editor-container {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .menu-toggle {
+                top: 15px;
+                left: 15px;
+                width: 45px;
+                height: 45px;
+            }
+            
+            .main-content {
+                padding: 20px;
+                padding-top: 70px;
+            }
+            
+            .header h1 {
+                font-size: 2rem;
+            }
+            
+            .features {
+                justify-content: center;
+            }
+            
+            .preview-actions {
+                flex-direction: column;
+                width: 100%;
+            }
+            
+            .btn {
+                justify-content: center;
+                width: 100%;
+            }
+            
+            .side-nav {
+                width: 100%;
+                transform: translateX(-100%);
+            }
+            
+            .side-nav.active {
+                transform: translateX(0);
+            }
+        }
+
+        @media (max-width: 576px) {
+            .header h1 {
+                font-size: 1.8rem;
+            }
+            
+            .section-title {
+                font-size: 1.5rem;
+            }
+            
+            .feature-badge {
+                font-size: 0.8rem;
+                padding: 8px 15px;
+            }
+            
+            .keywords {
+                gap: 10px;
+            }
+            
+            .keyword {
+                font-size: 0.8rem;
+                padding: 6px 12px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Loading Screen -->
+    <div class="loading-screen" id="loadingScreen">
+        <div class="loader"></div>
+        <h2 style="color: white; margin-top: 20px;">Loading CodePlayground...</h2>
+    </div>
+
+    <!-- Side Navigation -->
+    <nav class="side-nav" id="sideNav">
+        <div class="nav-header">
+            <h2><i class="fas fa-code"></i> Code<span>Playground</span></h2>
+            <p style="font-size: 0.9rem; color: var(--gray); margin-top: 5px;">100% Free Online Code Viewer</p>
+        </div>
+        
+        <div class="nav-links">
+            <a href="#html-editor" class="nav-link active">
+                <i class="fab fa-html5"></i>
+                <span>HTML Editor</span>
+            </a>
+            <a href="#css-editor" class="nav-link">
+                <i class="fab fa-css3-alt"></i>
+                <span>CSS Editor</span>
+            </a>
+            <a href="#js-editor" class="nav-link">
+                <i class="fab fa-js-square"></i>
+                <span>JavaScript Editor</span>
+            </a>
+            <a href="#preview" class="nav-link">
+                <i class="fas fa-eye"></i>
+                <span>Live Preview</span>
+            </a>
+            <a href="#features" class="nav-link">
+                <i class="fas fa-star"></i>
+                <span>Features</span>
+            </a>
+            <a href="#about" class="nav-link">
+                <i class="fas fa-info-circle"></i>
+                <span>About</span>
+            </a>
+        </div>
+        
+        <div class="nav-footer">
+            <p><i class="fas fa-check-circle" style="color: var(--secondary);"></i> 100% Free Forever</p>
+            <p><i class="fas fa-user-slash" style="color: var(--primary);"></i> No Sign Up Required</p>
+            <p><i class="fas fa-mobile-alt" style="color: var(--primary);"></i> Fully Responsive</p>
+        </div>
+    </nav>
+
+    <!-- Mobile Menu Toggle -->
+    <div class="menu-toggle" id="menuToggle">
+        <i class="fas fa-bars" id="menuIcon"></i>
+    </div>
+
+    <!-- Main Content -->
+    <main class="main-content" id="mainContent">
+        <!-- Header -->
+        <header class="header" id="features">
+            <h1>Free Online <span>HTML, CSS & JavaScript</span> Viewer</h1>
+            <p class="subtitle">Test and visualize your frontend code instantly with our modern code playground. 100% free, no sign-up required, and works on all devices. Perfect for learning, testing, and prototyping web projects.</p>
+            
+            <div class="features">
+                <div class="feature-badge">
+                    <i class="fas fa-bolt"></i> Instant Live Preview
+                </div>
+                <div class="feature-badge">
+                    <i class="fas fa-lock-open"></i> No Registration Required
+                </div>
+                <div class="feature-badge">
+                    <i class="fas fa-mobile-alt"></i> Mobile Responsive
+                </div>
+                <div class="feature-badge">
+                    <i class="fas fa-save"></i> Auto-Save Code
+                </div>
+                <div class="feature-badge">
+                    <i class="fas fa-palette"></i> Modern UI/UX
+                </div>
+                <div class="feature-badge">
+                    <i class="fas fa-rocket"></i> Fast Loading
+                </div>
+            </div>
+        </header>
+
+        <!-- Code Editor Section -->
+        <section class="editor-section">
+            <h2 class="section-title"><i class="fas fa-code"></i> Code Editors</h2>
+            
+            <div class="editor-container">
+                <!-- HTML Editor -->
+                <div class="editor-box" id="html-editor">
+                    <div class="editor-header">
+                        <h3><i class="fab fa-html5"></i> HTML</h3>
+                        <span class="code-count">Characters: <span id="html-count">0</span></span>
+                    </div>
+                    <div class="editor-body">
+                        <textarea class="code-input" id="html-code" placeholder="Enter your HTML code here..."><!DOCTYPE html>
+<html>
+<head>
+    <title>My Webpage</title>
+</head>
+<body>
+    <div class="container">
+        <h1>Welcome to CodePlayground</h1>
+        <p>This is a live preview of your HTML, CSS, and JavaScript code.</p>
+        <button id="demo-btn">Click Me!</button>
+        <div id="output"></div>
+    </div>
+</body>
+</html></textarea>
+                    </div>
+                </div>
+                
+                <!-- CSS Editor -->
+                <div class="editor-box" id="css-editor">
+                    <div class="editor-header">
+                        <h3><i class="fab fa-css3-alt"></i> CSS</h3>
+                        <span class="code-count">Characters: <span id="css-count">0</span></span>
+                    </div>
+                    <div class="editor-body">
+                        <textarea class="code-input" id="css-code" placeholder="Enter your CSS code here...">body {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+    min-height: 100vh;
+    margin: 0;
+    padding: 20px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.container {
+    max-width: 800px;
+    background: white;
+    border-radius: 20px;
+    box-shadow: 0 15px 35px rgba(0, 0, 0, 0.1);
+    padding: 40px;
+    text-align: center;
+}
+
+h1 {
+    color: #4f46e5;
+    margin-bottom: 20px;
+    font-size: 2.5rem;
+}
+
+p {
+    color: #666;
+    font-size: 1.2rem;
+    line-height: 1.6;
+    margin-bottom: 30px;
+}
+
+#demo-btn {
+    background: linear-gradient(to right, #4f46e5, #8b5cf6);
+    color: white;
+    border: none;
+    padding: 15px 40px;
+    font-size: 1.1rem;
+    border-radius: 50px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    font-weight: 600;
+    box-shadow: 0 5px 15px rgba(79, 70, 229, 0.3);
+}
+
+#demo-btn:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 8px 20px rgba(79, 70, 229, 0.4);
+}
+
+#output {
+    margin-top: 30px;
+    padding: 20px;
+    background: #f8fafc;
+    border-radius: 10px;
+    min-height: 60px;
+    font-family: 'Courier New', monospace;
+}</textarea>
+                    </div>
+                </div>
+                
+                <!-- JavaScript Editor -->
+                <div class="editor-box" id="js-editor">
+                    <div class="editor-header">
+                        <h3><i class="fab fa-js-square"></i> JavaScript</h3>
+                        <span class="code-count">Characters: <span id="js-count">0</span></span>
+                    </div>
+                    <div class="editor-body">
+                        <textarea class="code-input" id="js-code" placeholder="Enter your JavaScript code here...">document.addEventListener('DOMContentLoaded', function() {
+    const button = document.getElementById('demo-btn');
+    const output = document.getElementById('output');
+    let clickCount = 0;
+    
+    button.addEventListener('click', function() {
+        clickCount++;
+        output.innerHTML = `<h3>Button Clicked ${clickCount} time${clickCount !== 1 ? 's' : ''}</h3>`;
+        output.innerHTML += `<p>Last clicked at: ${new Date().toLocaleTimeString()}</p>`;
+        
+        // Create a visual effect
+        button.style.transform = 'scale(0.95)';
+        setTimeout(() => {
+            button.style.transform = '';
+        }, 100);
+        
+        // Add a random color effect
+        const colors = ['#4f46e5', '#8b5cf6', '#10b981', '#f59e0b', '#ef4444'];
+        const randomColor = colors[Math.floor(Math.random() * colors.length)];
+        output.style.borderLeft = `5px solid ${randomColor}`;
+    });
+    
+    // Initialize output message
+    output.innerHTML = '<p>Click the button to see JavaScript in action!</p>';
+});</textarea>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Preview Section -->
+        <section class="preview-section" id="preview">
+            <h2 class="section-title"><i class="fas fa-eye"></i> Live Preview</h2>
+            
+            <div class="preview-container">
+                <div class="preview-header">
+                    <h3><i class="fas fa-desktop"></i> Output Preview</h3>
+                    <div class="preview-actions">
+                        <button class="btn btn-secondary" id="resetBtn">
+                            <i class="fas fa-redo"></i> Reset Code
+                        </button>
+                        <button class="btn btn-primary" id="runBtn">
+                            <i class="fas fa-play"></i> Run Code
+                        </button>
+                    </div>
+                </div>
+                <iframe class="preview-frame" id="previewFrame"></iframe>
+            </div>
+        </section>
+
+        <!-- Footer -->
+        <footer class="footer" id="about">
+            <h3>Free Online Code Viewer & Playground</h3>
+            <p>This tool is completely free to use with no limitations, no registration required, and no hidden fees.</p>
+            
+            <div class="keywords">
+                <span class="keyword">HTML viewer online free</span>
+                <span class="keyword">CSS tester live preview</span>
+                <span class="keyword">JavaScript playground</span>
+                <span class="keyword">code editor free no sign up</span>
+                <span class="keyword">web development tools</span>
+                <span class="keyword">frontend code tester</span>
+                <span class="keyword">responsive design tester</span>
+                <span class="keyword">100% free code editor</span>
+                <span class="keyword">online code sandbox</span>
+                <span class="keyword">HTML CSS JS preview</span>
+                <span class="keyword">instant code execution</span>
+                <span class="keyword">mobile-friendly code editor</span>
+                <span class="keyword">learn web development free</span>
+                <span class="keyword">prototype web projects</span>
+            </div>
+            
+            <div class="copyright">
+                <p>© 2023 CodePlayground - Free HTML, CSS & JavaScript Viewer. All rights reserved.</p>
+                <p style="margin-top: 10px; font-size: 0.8rem;">This tool works entirely in your browser. No code is sent to any server.</p>
+            </div>
+        </footer>
+    </main>
+
+    <script>
+        // Wait for page to load
+        document.addEventListener('DOMContentLoaded', function() {
+            // Initialize variables
+            const loadingScreen = document.getElementById('loadingScreen');
+            const sideNav = document.getElementById('sideNav');
+            const menuToggle = document.getElementById('menuToggle');
+            const menuIcon = document.getElementById('menuIcon');
+            const mainContent = document.getElementById('mainContent');
+            const navLinks = document.querySelectorAll('.nav-link');
+            const htmlCode = document.getElementById('html-code');
+            const cssCode = document.getElementById('css-code');
+            const jsCode = document.getElementById('js-code');
+            const previewFrame = document.getElementById('previewFrame');
+            const runBtn = document.getElementById('runBtn');
+            const resetBtn = document.getElementById('resetBtn');
+            const htmlCount = document.getElementById('html-count');
+            const cssCount = document.getElementById('css-count');
+            const jsCount = document.getElementById('js-count');
+            
+            // Hide loading screen after 1.5 seconds (simulate fast loading)
+            setTimeout(() => {
+                loadingScreen.classList.add('hidden');
+                // Start animations after loading
+                document.querySelectorAll('.header, .editor-section, .preview-section, .footer')
+                    .forEach(el => el.style.animationPlayState = 'running');
+            }, 800);
+            
+            // Toggle side navigation
+            menuToggle.addEventListener('click', function(e) {
+                sideNav.classList.toggle('active');
+                menuIcon.classList.toggle('fa-bars');
+                menuIcon.classList.toggle('fa-times');
+                createRippleEffect(e);
+            });
+            
+            // Close side nav when clicking on a link (mobile)
+            navLinks.forEach(link => {
+                link.addEventListener('click', function() {
+                    if (window.innerWidth <= 768) {
+                        sideNav.classList.remove('active');
+                        menuIcon.classList.add('fa-bars');
+                        menuIcon.classList.remove('fa-times');
+                    }
+                    
+                    // Update active link
+                    navLinks.forEach(l => l.classList.remove('active'));
+                    this.classList.add('active');
+                });
+            });
+            
+            // Initialize code character counts
+            function updateCodeCounts() {
+                htmlCount.textContent = htmlCode.value.length;
+                cssCount.textContent = cssCode.value.length;
+                jsCount.textContent = jsCode.value.length;
+            }
+            
+            // Update counts on input
+            [htmlCode, cssCode, jsCode].forEach(textarea => {
+                textarea.addEventListener('input', updateCodeCounts);
+            });
+            
+            // Initialize counts
+            updateCodeCounts();
+            
+            // Run code and update preview
+            function runCode() {
+                const html = htmlCode.value;
+                const css = cssCode.value;
+                const js = jsCode.value;
+                
+                // Create the preview document
+                const previewDoc = previewFrame.contentDocument || previewFrame.contentWindow.document;
+                previewDoc.open();
+                previewDoc.write(`
+                    <!DOCTYPE html>
+                    <html>
+                    <head>
+                        <meta charset="UTF-8">
+                        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+                        <style>${css}</style>
+                    </head>
+                    <body>
+                        ${html}
+                        <script>${js}<\/script>
+                    </body>
+                    </html>
+                `);
+                previewDoc.close();
+            }
+            
+            // Auto-run code on changes with debounce
+            let debounceTimer;
+            function debounceRunCode() {
+                clearTimeout(debounceTimer);
+                debounceTimer = setTimeout(runCode, 800);
+            }
+            
+            // Add event listeners for code changes
+            [htmlCode, cssCode, jsCode].forEach(textarea => {
+                textarea.addEventListener('input', debounceRunCode);
+            });
+            
+            // Run code button
+            runBtn.addEventListener('click', function(e) {
+                runCode();
+                createRippleEffect(e);
+                
+                // Add visual feedback
+                runBtn.innerHTML = '<i class="fas fa-check"></i> Code Executed';
+                setTimeout(() => {
+                    runBtn.innerHTML = '<i class="fas fa-play"></i> Run Code';
+                }, 1500);
+            });
+            
+            // Reset code button
+            resetBtn.addEventListener('click', function(e) {
+                if (confirm('Are you sure you want to reset all code to default?')) {
+                    htmlCode.value = `<!DOCTYPE html>
+<html>
+<head>
+    <title>My Webpage</title>
+</head>
+<body>
+    <div class="container">
+        <h1>Welcome to CodePlayground</h1>
+        <p>This is a live preview of your HTML, CSS, and JavaScript code.</p>
+        <button id="demo-btn">Click Me!</button>
+        <div id="output"></div>
+    </div>
+</body>
+</html>`;
+                    
+                    cssCode.value = `body {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+    min-height: 100vh;
+    margin: 0;
+    padding: 20px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.container {
+    max-width: 800px;
+    background: white;
+    border-radius: 20px;
+    box-shadow: 0 15px 35px rgba(0, 0, 0, 0.1);
+    padding: 40px;
+    text-align: center;
+}
+
+h1 {
+    color: #4f46e5;
+    margin-bottom: 20px;
+    font-size: 2.5rem;
+}
+
+p {
+    color: #666;
+    font-size: 1.2rem;
+    line-height: 1.6;
+    margin-bottom: 30px;
+}
+
+#demo-btn {
+    background: linear-gradient(to right, #4f46e5, #8b5cf6);
+    color: white;
+    border: none;
+    padding: 15px 40px;
+    font-size: 1.1rem;
+    border-radius: 50px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    font-weight: 600;
+    box-shadow: 0 5px 15px rgba(79, 70, 229, 0.3);
+}
+
+#demo-btn:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 8px 20px rgba(79, 70, 229, 0.4);
+}
+
+#output {
+    margin-top: 30px;
+    padding: 20px;
+    background: #f8fafc;
+    border-radius: 10px;
+    min-height: 60px;
+    font-family: 'Courier New', monospace;
+}`;
+                    
+                    jsCode.value = `document.addEventListener('DOMContentLoaded', function() {
+    const button = document.getElementById('demo-btn');
+    const output = document.getElementById('output');
+    let clickCount = 0;
+    
+    button.addEventListener('click', function() {
+        clickCount++;
+        output.innerHTML = \`<h3>Button Clicked \${clickCount} time\${clickCount !== 1 ? 's' : ''}</h3>\`;
+        output.innerHTML += \`<p>Last clicked at: \${new Date().toLocaleTimeString()}</p>\`;
+        
+        // Create a visual effect
+        button.style.transform = 'scale(0.95)';
+        setTimeout(() => {
+            button.style.transform = '';
+        }, 100);
+        
+        // Add a random color effect
+        const colors = ['#4f46e5', '#8b5cf6', '#10b981', '#f59e0b', '#ef4444'];
+        const randomColor = colors[Math.floor(Math.random() * colors.length)];
+        output.style.borderLeft = \`5px solid \${randomColor}\`;
+    });
+    
+    // Initialize output message
+    output.innerHTML = '<p>Click the button to see JavaScript in action!</p>';
+});`;
+                    
+                    updateCodeCounts();
+                    runCode();
+                    createRippleEffect(e);
+                    
+                    // Add visual feedback
+                    resetBtn.innerHTML = '<i class="fas fa-check"></i> Code Reset';
+                    setTimeout(() => {
+                        resetBtn.innerHTML = '<i class="fas fa-redo"></i> Reset Code';
+                    }, 1500);
+                }
+            });
+            
+            // Ripple click effect
+            function createRippleEffect(event) {
+                const btn = event.currentTarget;
+                const circle = document.createElement('span');
+                const diameter = Math.max(btn.clientWidth, btn.clientHeight);
+                const radius = diameter / 2;
+                
+                circle.style.width = circle.style.height = `${diameter}px`;
+                circle.style.left = `${event.clientX - btn.getBoundingClientRect().left - radius}px`;
+                circle.style.top = `${event.clientY - btn.getBoundingClientRect().top - radius}px`;
+                circle.classList.add('ripple');
+                
+                const ripple = btn.getElementsByClassName('ripple')[0];
+                if (ripple) {
+                    ripple.remove();
+                }
+                
+                btn.appendChild(circle);
+            }
+            
+            // Add ripple effect to all buttons
+            document.querySelectorAll('.btn, .menu-toggle, .nav-link, .feature-badge').forEach(element => {
+                element.addEventListener('click', createRippleEffect);
+            });
+            
+            // Run code on initial load
+            setTimeout(runCode, 1000);
+            
+            // Auto-save code to localStorage
+            function saveCode() {
+                const codeData = {
+                    html: htmlCode.value,
+                    css: cssCode.value,
+                    js: jsCode.value,
+                    timestamp: new Date().getTime()
+                };
+                localStorage.setItem('codePlaygroundData', JSON.stringify(codeData));
+            }
+            
+            // Load saved code from localStorage
+            function loadCode() {
+                const savedData = localStorage.getItem('codePlaygroundData');
+                if (savedData) {
+                    try {
+                        const codeData = JSON.parse(savedData);
+                        // Only load if saved within last 7 days
+                        if (new Date().getTime() - codeData.timestamp < 7 * 24 * 60 * 60 * 1000) {
+                            htmlCode.value = codeData.html;
+                            cssCode.value = codeData.css;
+                            jsCode.value = codeData.js;
+                            updateCodeCounts();
+                            runCode();
+                        }
+                    } catch(e) {
+                        console.log('No valid saved code found');
+                    }
+                }
+            }
+            
+            // Auto-save on code changes
+            [htmlCode, cssCode, jsCode].forEach(textarea => {
+                textarea.addEventListener('input', saveCode);
+            });
+            
+            // Load saved code on page load
+            loadCode();
+        });
+    </script>
+</body>
+</html>
